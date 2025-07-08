@@ -20,7 +20,7 @@ Follow these simple steps to clone and run it on your computer:
 
 ### 1. Clone the Repository
 
-    git clone https://github.com/shuman.kr99/outfit-builder.git
+    https://github.com/Suman2708/NextJs.git
 
 
 ### Go into the project folder
