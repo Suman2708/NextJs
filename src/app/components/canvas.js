@@ -1,133 +1,134 @@
 "use client";
-import { useDrop } from 'react-dnd';
-import { useState } from 'react';
-import toast, { Toaster } from 'react-hot-toast';
-import html2canvas from 'html2canvas';
+import React, { useEffect, useRef } from "react";
+import { fabric } from "fabric";
+// import { Button } from "./ui/button"; // Adjust if needed
 
-const defaultOutfit = {
-  cap: null,
-  accessories: null,
-  tops: null,
-  belt: null,
-  bottoms: null,
-  shoes: null,
-};
+export default function FabricCanvas() {
+  const canvasRef = useRef(null);
+  const containerRef = useRef(null);
+  const fabricCanvas = useRef(null);
 
-const Canvas = ({ onAddToCart }) => {
-  const [outfit, setOutfit] = useState(defaultOutfit);
+  useEffect(() => {
+    const canvas = new fabric.Canvas(canvasRef.current, {
+      width: 652,
+      height: 650,
+      backgroundColor: "#fff",
+      preserveObjectStacking: true,
+    });
+    fabricCanvas.current = canvas;
 
-  const [{ isOver }, drop] = useDrop(() => ({
-    accept: ['cap', 'accessories', 'tops', 'belt', 'bottoms', 'shoes'],
-    drop: (item, monitor) => {
-      const type = monitor.getItemType();
-      setOutfit((prev) => ({ ...prev, [type]: item.image }));
-    },
-    collect: (monitor) => ({
-      isOver: !!monitor.isOver(),
-    }),
-  }));
+    const container = containerRef.current;
+    container.addEventListener("dragover", (e) => e.preventDefault());
+    container.addEventListener("drop", onDrop);
+
+    // When an object is selected, bring it to front
+    canvas.on("selection:created", bringToFront);
+    canvas.on("selection:updated", bringToFront);
+
+    return () => {
+      canvas.dispose();
+      container.removeEventListener("drop", onDrop);
+    };
+  }, []);
+
+  const bringToFront = (e) => {
+    const obj = e.selected?.[0];
+    if (obj) {
+      obj.bringToFront();
+      fabricCanvas.current.renderAll();
+    }
+  };
+
+  const onDrop = (e) => {
+    e.preventDefault();
+    const imageUrl = e.dataTransfer.getData("fabricImageSrc");
+    if (!imageUrl) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    fabric.Image.fromURL(
+      imageUrl,
+      (img) => {
+        img.set({
+          left: x,
+          top: y,
+          scaleX: 0.4,
+          scaleY: 0.4,
+          selectable: true,
+        });
+
+        img.setControlsVisibility({
+          mt: true,
+          mb: true,
+          ml: true,
+          mr: true,
+          bl: true,
+          br: true,
+          tl: true,
+          tr: true,
+          mtr: true,
+        });
+
+        fabricCanvas.current.add(img);
+        fabricCanvas.current.setActiveObject(img);
+        fabricCanvas.current.renderAll();
+      },
+      { crossOrigin: "anonymous" }
+    );
+  };
 
   const handleReset = () => {
-    if (confirm("Are you sure you want to reset the outfit?")) {
-      setOutfit(defaultOutfit);
-      toast("Outfit reset.");
-    }
+    if (!fabricCanvas.current) return;
+    fabricCanvas.current.clear();
+    fabricCanvas.current.setBackgroundColor("#fff", () => {});
   };
 
-  const handleAddToCart = () => {
-    const selectedItems = Object.values(outfit).filter(Boolean);
-    if (selectedItems.length === 0) {
-      toast("No items selected.");
-      return;
-    }
-    onAddToCart(selectedItems);
-    toast.success("Outfit added to cart!");
-  };
-
-  const handleSnapshot = () => {
-    const canvas = document.getElementById("outfit-canvas");
-    html2canvas(canvas).then((canvasEl) => {
-      const link = document.createElement("a");
-      link.download = "outfit.png";
-      link.href = canvasEl.toDataURL();
-      link.click();
+  const handleSave = () => {
+    if (!fabricCanvas.current) return;
+    const dataUrl = fabricCanvas.current.toDataURL({
+      format: "png",
+      quality: 1,
     });
+
+    const link = document.createElement("a");
+    link.download = "canvas.png";
+    link.href = dataUrl;
+    link.click();
+  };
+
+  const handleDelete = () => {
+    const canvas = fabricCanvas.current;
+    const activeObject = canvas?.getActiveObject();
+    if (activeObject) {
+      canvas.remove(activeObject);
+      canvas.discardActiveObject();
+      canvas.renderAll();
+    }
   };
 
   return (
-    <div className="relative">
-      <Toaster position="top-right" />
+    <div className="flex flex-col items-center gap-4">
       <div
-        ref={drop}
-        id="outfit-canvas"
-        className="w-full h-[650px] border-2 border-dashed relative bg-white rounded-xl shadow-md overflow-hidden"
-      >
-        {outfit.cap && (
-          <img
-            src={outfit.cap}
-            alt="cap"
-            className="absolute top-2 left-1/2 transform -translate-x-1/2 w-20 z-50"
-          />
-        )}
-        {outfit.accessories && (
-          <img
-            src={outfit.accessories}
-            alt="accessories"
-            className="absolute top-20 left-1/2 transform -translate-x-1/2 w-20 z-40"
-          />
-        )}
-        {outfit.tops && (
-          <img
-            src={outfit.tops}
-            alt="tops"
-            className="absolute top-36 left-1/2 transform -translate-x-1/2 w-24 z-30"
-          />
-        )}
-        {outfit.belt && (
-          <img
-            src={outfit.belt}
-            alt="belt"
-            className="absolute top-60 left-1/2 transform -translate-x-1/2 w-20 z-30"
-          />
-        )}
-        {outfit.bottoms && (
-          <img
-            src={outfit.bottoms}
-            alt="bottoms"
-            className="absolute top-[300px] left-1/2 transform -translate-x-1/2 w-24 z-10"
-          />
-        )}
-        {outfit.shoes && (
-          <img
-            src={outfit.shoes}
-            alt="shoes"
-            className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-20 z-0"
-          />
-        )}
-      </div>
+  ref={containerRef}
+  className="canvas-highlight-zone border-3 border-dashed rounded shadow-lg transition-all duration-300"
+>
+  <canvas ref={canvasRef} />
+</div>
 
-      <div className="flex gap-3 mt-4 justify-end">
-        <button
-          onClick={handleSnapshot}
-          className="px-4 py-2 bg-green-600 text-white rounded-md shadow hover:bg-green-700"
-        >
-          Save as Image
-        </button>
-        <button
-          onClick={handleAddToCart}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700"
-        >
-          Add to Cart
-        </button>
-        <button
-          onClick={handleReset}
-          className="px-4 py-2 bg-red-500 text-white rounded-md shadow hover:bg-red-600"
-        >
-          Reset
-        </button>
-      </div>
+
+      <div className="flex gap-4 mt-4">
+      <button onClick={handleReset} className="px-4 py-2 rounded bg-red-500 hover:bg-red-700 text-white cursor-pointer">
+        Reset Canvas
+      </button>
+      <button onClick={handleSave} className="px-4 py-2 rounded bg-green-500  hover:bg-green-700 text-white cursor-pointer" >
+        Save Image
+      </button>
+      <button  onClick={handleDelete} className="px-4 py-2 rounded bg-orange-500 hover:bg-orange-700 text-white cursor-pointer">
+        Delete
+      </button>
+            </div>
     </div>
   );
-};
-
-export default Canvas;
+}

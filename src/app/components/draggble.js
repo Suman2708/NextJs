@@ -1,24 +1,18 @@
-"use client";
-import { useDrag } from 'react-dnd';
-
-const DraggableItem = ({ image, type }) => {
-  const [{ isDragging }, drag] = useDrag(() => ({
-    type, // This is key!
-    item: { image },
-    collect: (monitor) => ({
-      isDragging: !!monitor.isDragging(),
-    }),
-  }));
+export default function DraggableItem({ image, alt }) {
+  const handleDragStart = (e) => {
+    e.dataTransfer.setData("fabricImageSrc", image);
+    e.dataTransfer.effectAllowed = "copy";
+  };
 
   return (
     <img
-      ref={drag}
-      src={image}
-      alt="clothing"
-      className="w-20 h-20 object-contain cursor-grab hover:scale-105 transition"
-      style={{ opacity: isDragging ? 0.5 : 1 }}
-    />
-  );
-};
+  src={image}
+  alt={alt}
+  draggable="true"
+  onDragStart={handleDragStart}
+  className="w-20 h-20 object-contain cursor-grab transition-transform duration-200 hover:scale-130"
+/>
 
-export default DraggableItem;
+  );
+}
+
