@@ -1,8 +1,10 @@
 "use client";
 import { DndProvider } from 'react-dnd';
+import { CartProvider } from "./context/cartContext";
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import DraggableItem from './components/draggble';
 import Canvas from './components/canvas';
+import Cart from './components/cart';
 
 const Home = () => {
   const bottoms = [
@@ -46,6 +48,7 @@ const Home = () => {
   };
 
   return (
+    // <CartProvider>
     <DndProvider backend={HTML5Backend}>
       <div className="p-6">
         <h1 className="text-3xl font-bold mb-6 text-center">Outfit Builder</h1>
@@ -113,8 +116,10 @@ const Home = () => {
             <Canvas onAddToCart={handleAddToCart} />
           </div>
         </div>
+        <Cart/>
       </div>
     </DndProvider>
+    // {/* </CartProvider> */}
   );
 };
 
