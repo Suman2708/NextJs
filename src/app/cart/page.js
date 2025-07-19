@@ -28,7 +28,7 @@ export default function Cart() {
             />
             <div>
               <p className="font-medium">Quantity: {quantity}</p>
-              <div className="flex gap-2 mt-1">
+              {/* <div className="flex gap-2 mt-1">
                 <button
                   onClick={() => updateQuantity(src, 1)}
                   className="bg-green-500 px-2 py-1 rounded text-white"
@@ -41,7 +41,7 @@ export default function Cart() {
                 >
                   -
                 </button>
-              </div>
+              </div> */}
             </div>
           </li>
         ))}
