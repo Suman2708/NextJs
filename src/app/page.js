@@ -4,9 +4,15 @@ import { CartProvider } from "./context/cartContext";
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import DraggableItem from './components/draggble';
 import Canvas from './components/canvas';
+import { useState } from 'react';
+import CartIcon from './components/cartIcon';
 import Cart from './components/cart';
 
 const Home = () => {
+    const [cart, setCart] = useState({});
+  const [showCart, setShowCart] = useState(false);
+
+  const toggleCart = () => setShowCart(!showCart);
   const bottoms = [
     '/bottoms/bottom1.jpg',
     '/bottoms/bottom2.jpg',
@@ -48,10 +54,12 @@ const Home = () => {
   };
 
   return (
-    // <CartProvider>
     <DndProvider backend={HTML5Backend}>
       <div className="p-6">
         <h1 className="text-3xl font-bold mb-6 text-center">Outfit Builder</h1>
+        <div className='z-10'>
+          <CartIcon />
+        </div>
         
         <div className="flex gap-6">
           {/* Clothing Items */}
@@ -119,7 +127,7 @@ const Home = () => {
         <Cart/>
       </div>
     </DndProvider>
-    // {/* </CartProvider> */}
+
   );
 };
 

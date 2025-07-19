@@ -32,7 +32,7 @@ export default function DraggableItem({ image, alt }) {
       alt={alt}
       draggable
       onDragStart={handleDragStart}
-      className="w-20 h-20 object-contain cursor-grab hover:scale-105 transition"
+      className="w-25 h-25 object-contain cursor-grab hover:scale-105 transition"
     />
   );
 }
